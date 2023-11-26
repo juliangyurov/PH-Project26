@@ -1,25 +1,25 @@
-## [Project 25: Selfie Share](https://www.hackingwithswift.com/read/25/overview)
+## [Project 26: Marble Maze](https://www.hackingwithswift.com/read/26/overview)
 Written by [Paul Hudson](https://www.hackingwithswift.com/about)  ![twitter16](https://github.com/juliangyurov/PH-Project6a/assets/13259596/445c8ea0-65c4-4dba-8e1f-3f2750f0ef51)
   [@twostraws](https://twitter.com/twostraws)
 
-**Description:** Make a multipeer photo sharing app in just 150 lines of code.
+**Description:** Respond to device tilting by steering a ball around a vortex maze.
 
 - Setting up
 
-- Importing photos again
+- Loading a level: `categoryBitMask`, `collisionBitMask`, `contactTestBitMask`
 
-- Going peer to peer: `MCSession`, `MCBrowserViewController`
+- Tilt to move: `CMMotionManager`
 
-- Invitation only: `MCPeerID`
+- Contacting but not colliding
 
 - Wrap up
   
-## [Review what you learned](https://www.hackingwithswift.com/review/hws/project-25-selfie-share)
+## [Review what you learned](https://www.hackingwithswift.com/review/hws/project-26-marble-maze)
 
 **Challenge**
 
-1. Show an alert when a user has disconnected from our multipeer network. Something like “Paul’s iPhone has disconnected” is enough.
+1. Rewrite the loadLevel() method so that it's made up of multiple smaller methods. This will make your code easier to read and easier to maintain, or at least it should do if you do a good job!
 
-2. Try sending text messages across the network. You can create a `Data` from a string using `Data(yourString.utf8)`, and convert a `Data` back to a string by using `String(decoding: yourData, as: UTF8.self)`.
+2. When the player finally makes it to the finish marker, nothing happens. What should happen? Well, that's down to you now. You could easily design several new levels and have them progress through.
 
-3. Add a button that shows an alert controller listing the names of all devices currently connected to the session – use the `connectedPeers` property of your session to find that information.
+3. Add a new block type, such as a teleport that moves the player from one teleport point to the other. Add a new letter type in `loadLevel()`, add another collision type to our `enum`, then see what you can do.
