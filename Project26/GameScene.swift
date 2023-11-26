@@ -202,6 +202,20 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
             score += 1
         } else if node.name == "finish" {
             // next level?
+            player.physicsBody?.isDynamic = false
+            isGameOver = true
+            score += 10
+
+            let move = SKAction.move(to: node.position, duration: 0.25)
+            let scale = SKAction.scale(to: 0.0001, duration: 0.25)
+            let remove = SKAction.removeFromParent()
+            let sequence = SKAction.sequence([move, scale, remove])
+
+            player.run(sequence) { [weak self] in
+                self?.loadLevel()
+                self?.createPlayer()
+                self?.isGameOver = false
+            }
         }
     }
 }
