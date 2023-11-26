@@ -4,7 +4,7 @@
 //
 //  Created by Yulian Gyuroff on 25.11.23.
 //
-
+import CoreMotion
 import SpriteKit
 
 enum CollisionTypes: UInt32 {
@@ -18,16 +18,22 @@ enum CollisionTypes: UInt32 {
 class GameScene: SKScene {
     var player: SKSpriteNode!
     var lastTouchPosition: CGPoint?
+    var motionManager: CMMotionManager!
      
     override func didMove(to view: SKView) {
         physicsWorld.gravity = .zero
+        
         let background = SKSpriteNode(imageNamed: "background.jpg")
         background.position = CGPoint(x: 512, y: 384)
         background.blendMode = .replace
         background.zPosition = -1
         addChild(background)
+        
         loadLevel()
         createPlayer()
+        
+        motionManager = CMMotionManager()
+        motionManager.startAccelerometerUpdates()
     }
     
     func loadLevel() {
@@ -130,9 +136,19 @@ class GameScene: SKScene {
     }
     
     override func update(_ currentTime: TimeInterval) {
+        //        if let currentTouch = lastTouchPosition {
+        //            let diff = CGPoint(x: currentTouch.x - player.position.x, y: currentTouch.y - player.position.y)
+        //            physicsWorld.gravity = CGVector(dx: diff.x / 100, dy: diff.y / 100)
+        //        }
+#if targetEnvironment(simulator)
         if let currentTouch = lastTouchPosition {
             let diff = CGPoint(x: currentTouch.x - player.position.x, y: currentTouch.y - player.position.y)
             physicsWorld.gravity = CGVector(dx: diff.x / 100, dy: diff.y / 100)
         }
+#else
+        if let accelerometerData = motionManager.accelerometerData {
+            physicsWorld.gravity = CGVector(dx: accelerometerData.acceleration.y * -50, dy: accelerometerData.acceleration.x * 50)
+        }
+#endif
     }
 }
