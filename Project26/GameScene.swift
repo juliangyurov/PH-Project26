@@ -16,14 +16,18 @@ enum CollisionTypes: UInt32 {
 }
 
 class GameScene: SKScene {
+    var player: SKSpriteNode!
+    var lastTouchPosition: CGPoint?
      
     override func didMove(to view: SKView) {
+        physicsWorld.gravity = .zero
         let background = SKSpriteNode(imageNamed: "background.jpg")
         background.position = CGPoint(x: 512, y: 384)
         background.blendMode = .replace
         background.zPosition = -1
         addChild(background)
         loadLevel()
+        createPlayer()
     }
     
     func loadLevel() {
@@ -95,4 +99,40 @@ class GameScene: SKScene {
         }
     }
     
+    func createPlayer() {
+        player = SKSpriteNode(imageNamed: "player")
+        player.position = CGPoint(x: 96, y: 672)
+        player.zPosition = 1
+        player.physicsBody = SKPhysicsBody(circleOfRadius: player.size.width / 2)
+        player.physicsBody?.allowsRotation = false
+        player.physicsBody?.linearDamping = 0.5
+
+        player.physicsBody?.categoryBitMask = CollisionTypes.player.rawValue
+        player.physicsBody?.contactTestBitMask = CollisionTypes.star.rawValue | CollisionTypes.vortex.rawValue | CollisionTypes.finish.rawValue
+        player.physicsBody?.collisionBitMask = CollisionTypes.wall.rawValue
+        addChild(player)
+    }
+    
+    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
+        guard let touch = touches.first else { return }
+        let location = touch.location(in: self)
+        lastTouchPosition = location
+    }
+
+    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
+        guard let touch = touches.first else { return }
+        let location = touch.location(in: self)
+        lastTouchPosition = location
+    }
+    
+    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
+        lastTouchPosition = nil
+    }
+    
+    override func update(_ currentTime: TimeInterval) {
+        if let currentTouch = lastTouchPosition {
+            let diff = CGPoint(x: currentTouch.x - player.position.x, y: currentTouch.y - player.position.y)
+            physicsWorld.gravity = CGVector(dx: diff.x / 100, dy: diff.y / 100)
+        }
+    }
 }
