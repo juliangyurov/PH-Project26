@@ -13,6 +13,7 @@ enum CollisionTypes: UInt32 {
     case star = 4
     case vortex = 8
     case finish = 16
+    case teleport = 32
 }
 
 class GameScene: SKScene, SKPhysicsContactDelegate  {
@@ -114,7 +115,18 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
                     node.physicsBody?.collisionBitMask = 0
                     node.position = position
                     addChild(node)
-                } else if letter == " " {
+                }else if letter == "t" {
+                    // load wall
+                    let node = SKSpriteNode(imageNamed: "teleport")
+                    node.position = position
+                    node.name = "teleport"
+                    node.physicsBody = SKPhysicsBody(rectangleOf: node.size)
+                    node.physicsBody?.categoryBitMask = CollisionTypes.teleport.rawValue
+                    node.physicsBody?.contactTestBitMask = CollisionTypes.player.rawValue
+                    node.physicsBody?.collisionBitMask = 0
+                    node.physicsBody?.isDynamic = false
+                    addChild(node)
+                }else if letter == " " {
                     // this is an empty space – do nothing!
                 } else {
                     fatalError("Unknown level letter: \(letter)")
@@ -132,7 +144,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
         player.physicsBody?.linearDamping = 0.5
 
         player.physicsBody?.categoryBitMask = CollisionTypes.player.rawValue
-        player.physicsBody?.contactTestBitMask = CollisionTypes.star.rawValue | CollisionTypes.vortex.rawValue | CollisionTypes.finish.rawValue
+        player.physicsBody?.contactTestBitMask = CollisionTypes.star.rawValue | CollisionTypes.vortex.rawValue | CollisionTypes.finish.rawValue | CollisionTypes.teleport.rawValue
         player.physicsBody?.collisionBitMask = CollisionTypes.wall.rawValue
         addChild(player)
     }
@@ -216,6 +228,23 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
                 self?.createPlayer()
                 self?.isGameOver = false
             }
+        }else if node.name == "teleport"{
+            // teleport player
+            player.physicsBody?.isDynamic = false
+            isGameOver = true
+            score += 15
+
+            let move = SKAction.move(to: node.position, duration: 0.25)
+            let scale = SKAction.scale(to: 0.0001, duration: 0.25)
+            let remove = SKAction.removeFromParent()
+            let sequence = SKAction.sequence([move, scale, remove])
+
+            player.run(sequence) { [weak self] in
+                //self?.loadLevel()
+                self?.createPlayer()
+                self?.isGameOver = false
+            }
+            
         }
     }
 }
