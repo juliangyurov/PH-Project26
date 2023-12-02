@@ -39,7 +39,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
      
     fileprivate func createScoreLabel() {
         scoreLabel = SKLabelNode(fontNamed: "Chalkduster")
-        scoreLabel.text = "Score: 0"
+        scoreLabel.text = "Score: \(score)"
         scoreLabel.horizontalAlignmentMode = .left
         scoreLabel.position = CGPoint(x: 16, y: 16)
         scoreLabel.zPosition = 2
