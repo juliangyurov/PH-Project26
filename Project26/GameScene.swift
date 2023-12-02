@@ -33,27 +33,38 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
     }
     
     var isGameOver = false
+    
+    var teleportPositions = [CGPoint]()
+    //var allNodes = [SKSpriteNode]()
      
-    override func didMove(to view: SKView) {
-        physicsWorld.contactDelegate = self
-        
-        physicsWorld.gravity = .zero
-        
+    fileprivate func createScoreLabel() {
         scoreLabel = SKLabelNode(fontNamed: "Chalkduster")
         scoreLabel.text = "Score: 0"
         scoreLabel.horizontalAlignmentMode = .left
         scoreLabel.position = CGPoint(x: 16, y: 16)
         scoreLabel.zPosition = 2
         addChild(scoreLabel)
-        
+    }
+    
+    fileprivate func createBackGrnd() {
         let background = SKSpriteNode(imageNamed: "background.jpg")
         background.position = CGPoint(x: 512, y: 384)
         background.blendMode = .replace
         background.zPosition = -1
         addChild(background)
+    }
+    
+    override func didMove(to view: SKView) {
+        physicsWorld.contactDelegate = self
+        
+        physicsWorld.gravity = .zero
+        
+        createScoreLabel()
+        
+        createBackGrnd()
         
         loadLevel()
-        createPlayer()
+        createPlayer(position: CGPoint(x: 96, y: 672))
         
         motionManager = CMMotionManager()
         motionManager.startAccelerometerUpdates()
@@ -64,6 +75,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
                                 _ contactTestBitMask: UInt32?, _ collisionBitMask: UInt32, _ rotate: Bool) {
         node.name = nodeName
         node.position = position
+        
         if rotate {
             node.run(SKAction.repeatForever(SKAction.rotate(byAngle: .pi, duration: 1)))
         }
@@ -79,6 +91,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
             node.physicsBody?.contactTestBitMask = contactTestBitMask ?? CollisionTypes.player.rawValue
         }
         node.physicsBody?.collisionBitMask = collisionBitMask
+        //allNodes.append(node)
         addChild(node)
     }
     
@@ -105,6 +118,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
                     node.physicsBody = SKPhysicsBody(rectangleOf: node.size)
                     node.physicsBody?.categoryBitMask = CollisionTypes.wall.rawValue
                     node.physicsBody?.isDynamic = false
+                    //allNodes.append(node)
                     addChild(node)
                 } else if letter == "v"  {
                     // load vortex
@@ -134,7 +148,8 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
                                CollisionTypes.player.rawValue,0,false)
 
                 }else if letter == " " {
-                    // this is an empty space – do nothing!
+                    // this is an empty space – add to !
+                    teleportPositions.append(position)
                 } else {
                     fatalError("Unknown level letter: \(letter)")
                 }
@@ -142,9 +157,9 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
         }
     }
     
-    func createPlayer() {
+    func createPlayer(position: CGPoint) {
         player = SKSpriteNode(imageNamed: "player")
-        player.position = CGPoint(x: 96, y: 672)
+        player.position = position
         player.zPosition = 1
         player.physicsBody = SKPhysicsBody(circleOfRadius: player.size.width / 2)
         player.physicsBody?.allowsRotation = false
@@ -153,6 +168,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
         player.physicsBody?.categoryBitMask = CollisionTypes.player.rawValue
         player.physicsBody?.contactTestBitMask = CollisionTypes.star.rawValue | CollisionTypes.vortex.rawValue | CollisionTypes.finish.rawValue | CollisionTypes.teleport.rawValue
         player.physicsBody?.collisionBitMask = CollisionTypes.wall.rawValue
+        //allNodes.append(player)
         addChild(player)
     }
     
@@ -202,6 +218,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
     }
     
     func playerCollided(with node: SKNode) {
+        
         if node.name == "vortex" {
             player.physicsBody?.isDynamic = false
             isGameOver = true
@@ -213,7 +230,7 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
             let sequence = SKAction.sequence([move, scale, remove])
 
             player.run(sequence) { [weak self] in
-                self?.createPlayer()
+                self?.createPlayer(position: CGPoint(x: 96, y: 672))
                 self?.isGameOver = false
             }
         } else if node.name == "star" {
@@ -231,8 +248,15 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
             let sequence = SKAction.sequence([move, scale, remove])
 
             player.run(sequence) { [weak self] in
+                self?.teleportPositions.removeAll()
+                
+                self?.removeAllChildren()
+                self?.createBackGrnd()
+                self?.createScoreLabel()
+                //self?.allNodes.removeAll()
+                
                 self?.loadLevel()
-                self?.createPlayer()
+                self?.createPlayer(position: CGPoint(x: 96, y: 672))
                 self?.isGameOver = false
             }
         }else if node.name == "teleport"{
@@ -246,9 +270,14 @@ class GameScene: SKScene, SKPhysicsContactDelegate  {
             let remove = SKAction.removeFromParent()
             let sequence = SKAction.sequence([move, scale, remove])
 
+                     
             player.run(sequence) { [weak self] in
-                //self?.loadLevel()
-                self?.createPlayer()
+                                
+                if self?.teleportPositions.count ?? 0 > 0 {
+                    self?.createPlayer(position: (self?.teleportPositions.randomElement())! )
+                }else {
+                    self?.createPlayer(position: CGPoint(x: 96, y: 672) )
+                }
                 self?.isGameOver = false
             }
             
